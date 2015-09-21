@@ -7,9 +7,10 @@ import java.util.HashMap;
 public class Main {
 	public static MainGui gui;
 	
-	public static void displayReturn(HashMap<Integer, String> ret) {
-		for (Integer i : ret.keySet()) {
-			System.out.println(i + ": " + ret.get(i));
+	public static void displayReturn(int acc, HashMap<Integer, Cell> cells) {
+		System.out.println("Accumulator: " + acc);
+		for (Cell cell : cells.values()) {
+			System.out.println(cell.position + (cell.label.isEmpty() ? "" : " (" + cell.label + ")") + ": " + (cell.isInteger ? cell.value : cell.data));
 		}
 	}
 	
@@ -21,7 +22,11 @@ public class Main {
 			public void actionPerformed(ActionEvent evt) {
 				String code = gui.textCode.getText();
 				Assembly asm = new Assembly();
-				Main.displayReturn(asm.execute(code));
+				if (!asm.execute(code)) {
+					System.out.println("Error: " + asm.getLastError());
+					return;
+				}
+				Main.displayReturn(asm.accumulator, asm.cells);
 			}
 		});
 		gui.setVisible(true);
