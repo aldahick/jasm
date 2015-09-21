@@ -19,13 +19,16 @@ public class MainGui extends javax.swing.JFrame {
     private void initComponents() {
 
         buttonStart = new javax.swing.JButton();
-        buttonFile = new javax.swing.JButton();
+        jScrollPane1 = new javax.swing.JScrollPane();
+        textCode = new javax.swing.JTextArea();
 
         setDefaultCloseOperation(javax.swing.WindowConstants.EXIT_ON_CLOSE);
 
         buttonStart.setText("Start");
 
-        buttonFile.setText("Open File");
+        textCode.setColumns(20);
+        textCode.setRows(5);
+        jScrollPane1.setViewportView(textCode);
 
         javax.swing.GroupLayout layout = new javax.swing.GroupLayout(getContentPane());
         getContentPane().setLayout(layout);
@@ -33,19 +36,21 @@ public class MainGui extends javax.swing.JFrame {
             layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
             .addGroup(layout.createSequentialGroup()
                 .addContainerGap()
-                .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.TRAILING, false)
-                    .addComponent(buttonStart, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
-                    .addComponent(buttonFile, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
-                .addContainerGap(813, Short.MAX_VALUE))
+                .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                    .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, layout.createSequentialGroup()
+                        .addGap(0, 0, Short.MAX_VALUE)
+                        .addComponent(buttonStart, javax.swing.GroupLayout.PREFERRED_SIZE, 77, javax.swing.GroupLayout.PREFERRED_SIZE))
+                    .addComponent(jScrollPane1, javax.swing.GroupLayout.DEFAULT_SIZE, 880, Short.MAX_VALUE))
+                .addContainerGap())
         );
         layout.setVerticalGroup(
             layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-            .addGroup(layout.createSequentialGroup()
+            .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, layout.createSequentialGroup()
                 .addContainerGap()
-                .addComponent(buttonStart)
+                .addComponent(jScrollPane1, javax.swing.GroupLayout.DEFAULT_SIZE, 499, Short.MAX_VALUE)
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                .addComponent(buttonFile)
-                .addContainerGap(487, Short.MAX_VALUE))
+                .addComponent(buttonStart)
+                .addContainerGap())
         );
 
         pack();
@@ -77,11 +82,15 @@ public class MainGui extends javax.swing.JFrame {
 			java.util.logging.Logger.getLogger(MainGui.class.getName()).log(java.util.logging.Level.SEVERE, null, ex);
 		}
         //</editor-fold>
+        //</editor-fold>
+        //</editor-fold>
+        //</editor-fold>
 
 	}
 
     // Variables declaration - do not modify//GEN-BEGIN:variables
-    public javax.swing.JButton buttonFile;
     public javax.swing.JButton buttonStart;
+    private javax.swing.JScrollPane jScrollPane1;
+    public javax.swing.JTextArea textCode;
     // End of variables declaration//GEN-END:variables
 }
