@@ -5,7 +5,7 @@ import java.util.HashMap;
 public class Assembly {
 
 	public HashMap<Integer, Cell> cells;
-	public int accumulator = 0;
+	public int accumulator = 0x0;
 	private String lastError = "";
 
 	public String getLastError() {
@@ -16,17 +16,20 @@ public class Assembly {
 		this.lastError = "Unable to parse cell " + pos + ":\n" + msg;
 	}
 
-	private HashMap<Integer, Cell> parse(String[] lines) {
-		HashMap<Integer, Cell> cells = new HashMap<>();
+	private void parse(String[] lines) {
+		cells = new HashMap<>();
 		int skipped = 0;
 		for (int i = 0; i < lines.length; i++) {
 			if (lines[i].startsWith(";") || lines[i].isEmpty()) {
 				skipped++;
 				continue;
 			}
-			cells.put(i - skipped, new Cell(lines[i], i - skipped));
+			if (lines[i].contains(";")) {
+				lines[i] = lines[i].substring(0, lines[i].indexOf(";"));
+			}
+			Cell cell = new Cell(lines[i], i - skipped);
+			cells.put(i - skipped, cell);
 		}
-		return cells;
 	}
 
 	private int toNumber(String p) {
@@ -56,121 +59,164 @@ public class Assembly {
 	}
 
 	private boolean checkPointerInteger(int ptr, int pos) {
-		if (!cells.get(ptr).isInteger) {
+		if (!cells.get(ptr).isNumber) {
 			error(pos, "Cell " + ptr + " is not an integer.");
 			return false;
 		}
 		return true;
 	}
 
-	public boolean execute(String code) {
-		cells = parse(code.split("\n"));
-		for (int i = 0; i < cells.size(); i++) {
-			Cell cell = cells.get(i);
-			if (cell.isInteger) {
-				accumulator += cell.value;
-				continue;
-			}
-			String[] t = cell.data.split(" ");
-			if (t.length == 0) {
-				continue;
-			}
-			String instruction = t[0].toUpperCase();
-			if (t.length == 1) { // NOT, SHL, SHR, INC, DEC, HLT
-				switch (instruction) {
-					case "NOT":
-						this.accumulator = accumulator ^ 1;
-						break;
-					case "SHL":
-						this.accumulator *= 2;
-						break;
-					case "SHR":
-						this.accumulator /= 2;
-						break;
-					case "INC":
-						this.accumulator++;
-						break;
-					case "DEC":
-						this.accumulator--;
-						break;
-					case "HLT":
-						return true;
-				}
-			} else if (t.length == 2) {
-				int ptr = checkLabel(t[1]);
-				if (ptr < 0) {
-					ptr = toNumber(t[1]);
-				}
-				switch (instruction) {
-					case "STO":
-						Cell newCell;
-						if (!cells.containsKey(ptr)) {
-							newCell = new Cell(String.valueOf(accumulator), ptr);
-						} else {
-							newCell = cells.get(ptr).copy();
-						}
-						newCell.value = accumulator;
-						newCell.isInteger = true;
-						cells.put(ptr, newCell);
-						break;
-					case "LOD-C":
-						this.accumulator = ptr;
-						break;
-					case "ADD-C":
-						this.accumulator += ptr;
-						break;
-					case "SUB-C":
-						this.accumulator -= ptr;
-						break;
-					case "AND-C":
-						this.accumulator &= ptr;
-						break;
-					case "OR-C":
-						this.accumulator |= ptr;
-						break;
-					case "JMP":
-						i = ptr;
-						break;
-					case "JMZ":
-						if (accumulator == 0) {
-							i = ptr;
-						}
-						break;
-					case "JMN":
-						if (accumulator < 0) {
-							i = ptr;
-						}
-						break;
-				}
-				// These instructions absolutely require their argument
-				// TO POINT TO AN INTEGER VALUE.
-				if (checkPointerInteger(ptr, cell.position)) {
-					switch (instruction) {
-						case "LOD":
-							this.accumulator = cells.get(ptr).value;
-							break;
-						case "ADD":
-							this.accumulator += cells.get(ptr).value;
-							break;
-						case "SUB":
-							this.accumulator -= cells.get(ptr).value;
-							break;
-						case "AND":
-							this.accumulator &= cells.get(ptr).value;
-							break;
-						case "OR":
-							this.accumulator |= cells.get(ptr).value;
-							break;
-						case "JMP-I":
-							i = cells.get(i).value;
-							break;
-					}
-				}
-			} else {
-				error(cell.position, "Argument count " + t.length + " is invalid.");
-				return false;
-			}
+	private int handle(int i) {
+		Main.gui.outputList.setSelectedIndex(i);
+		Cell cell = cells.get(i);
+		if (cell.isNumber) {
+			accumulator += cell.value;
+			return i;
 		}
+		String[] t = cell.data.split(" ");
+		if (t.length == 0) {
+			return i;
+		}
+		String instruction = t[0].toUpperCase();
+		if (t.length == 1) { // NOT, SHL, SHR, INC, DEC, HLT
+			switch (instruction) {
+				case "NOT":
+					this.accumulator = ~accumulator;
+					break;
+				case "SHL":
+					this.accumulator *= 2;
+					break;
+				case "SHR":
+					this.accumulator /= 2;
+					break;
+				case "INC":
+					this.accumulator += 1;
+					break;
+				case "DEC":
+					this.accumulator -= 1;
+					break;
+				case "HLT":
+					return -1;
+				case "PRINT": // Prints the accumulator value
+					System.out.println(this.accumulator);
+					break;
+				default:
+					error(cell.position, "Instruction \"" + instruction + "\" is invalid.");
+					return -2;
+			}
+		} else if (t.length == 2) {
+			int ptr = checkLabel(t[1]);
+			if (ptr < 0) {
+				ptr = toNumber(t[1]);
+			}
+			switch (instruction) {
+				case "STO":
+					Cell newCell;
+					if (!cells.containsKey(ptr)) {
+						newCell = new Cell(String.valueOf(accumulator), ptr);
+					} else {
+						newCell = cells.get(ptr).copy();
+					}
+					newCell.value = accumulator;
+					newCell.isNumber = true;
+					cells.put(ptr, newCell);
+					break;
+				case "LOD-C":
+					this.accumulator = ptr;
+					break;
+				case "ADD-C":
+					this.accumulator += ptr;
+					break;
+				case "SUB-C":
+					this.accumulator -= ptr;
+					break;
+				case "AND-C":
+					this.accumulator &= ptr;
+					break;
+				case "OR-C":
+					this.accumulator |= ptr;
+					break;
+				case "PRINT-C":
+					System.out.println(ptr);
+					break;
+				case "JMP":
+					return ptr;
+				case "JMZ":
+					if (accumulator == 0) {
+						return ptr;
+					}
+					break;
+				case "JMN":
+					if (accumulator < 0) {
+						return ptr;
+					}
+					break;
+				default:
+					boolean pointsToInteger;
+					try {
+						pointsToInteger = checkPointerInteger(ptr, cell.position);
+					} catch (NullPointerException ex) {
+						error(cell.position, "Pointer " + ptr + " is not valid!");
+						return -2;
+					}
+					// These instructions absolutely require that their argument points at an integer value.
+					if (pointsToInteger) {
+						switch (instruction) {
+							case "PRINT": // This is just for debugging
+								System.out.println(cells.get(ptr).value);
+								break;
+							case "LOD":
+								this.accumulator = cells.get(ptr).value;
+								break;
+							case "ADD":
+								this.accumulator += cells.get(ptr).value;
+								break;
+							case "SUB":
+								this.accumulator -= cells.get(ptr).value;
+								break;
+							case "AND":
+								this.accumulator &= cells.get(ptr).value;
+								break;
+							case "OR":
+								this.accumulator |= cells.get(ptr).value;
+								break;
+							case "JMP-I":
+								return cells.get(i).value;
+							default:
+								error(cell.position, "Instruction \"" + instruction + "\" is invalid.");
+								return -2;
+						}
+					} else {
+						error(cell.position, "Pointer " + ptr + " does not point to an integer!");
+						return -2;
+					}
+					break;
+			}
+		} else {
+			error(cell.position, "Argument count " + t.length + " is invalid.");
+			return -2;
+		}
+		return i;
+	}
+
+	public boolean execute(String code) {
+		parse(code.split("\n"));
+		int count = 0, i;
+		for (i = 0; i < cells.size() && count < 2000; i++, count++) {
+			int newI = handle(i);
+			if (newI == -1) {
+				return true;
+			} else if (newI == -2) {
+				return false;
+			} else if (newI == i) {
+				continue;
+			}
+			i = newI - 1;
+		}
+		if (count >= 2000) {
+			error(-1, "Too many iterations (over 2000)\nWe had to stop you.");
+		}
+		System.out.println("End run");
 		return true;
 	}
 }

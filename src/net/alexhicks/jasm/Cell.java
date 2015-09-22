@@ -1,9 +1,9 @@
 package net.alexhicks.jasm;
 
 public class Cell {
-	public boolean isInteger = false;
+	public boolean isNumber = false;
 	public String data = "";
-	public int value = 0;
+	public int value = 0x0;
 	public int position = 0;
 	public String label = "";
 	private String rawData;
@@ -16,7 +16,7 @@ public class Cell {
 		data = data.trim();
 		try {
 			this.value = Integer.parseInt(data);
-			this.isInteger = true;
+			this.isNumber = true;
 		} catch (NumberFormatException ex) {
 			this.data = data;
 		}

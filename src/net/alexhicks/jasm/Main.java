@@ -3,15 +3,18 @@ package net.alexhicks.jasm;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.util.HashMap;
+import javax.swing.DefaultListModel;
 
 public class Main {
 	public static MainGui gui;
 	
 	public static void displayReturn(int acc, HashMap<Integer, Cell> cells) {
-		System.out.println("Accumulator: " + acc);
+		DefaultListModel model = new DefaultListModel();
+		model.addElement("Accumulator: " + acc);
 		for (Cell cell : cells.values()) {
-			System.out.println(cell.position + (cell.label.isEmpty() ? "" : " (" + cell.label + ")") + ": " + (cell.isInteger ? cell.value : cell.data));
+			model.addElement(cell.position + ": " + (cell.isNumber ? cell.value : cell.data));
 		}
+		gui.outputList.setModel(model);
 	}
 	
 	public static void main(String[] args) {
