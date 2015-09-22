@@ -26,7 +26,7 @@ public class Main {
 				String code = gui.textCode.getText();
 				Assembly asm = new Assembly();
 				if (!asm.execute(code)) {
-					System.out.println("Error: " + asm.getLastError());
+					gui.errorLabel.setText(asm.getLastError());
 					return;
 				}
 				Main.displayReturn(asm.accumulator, asm.cells);

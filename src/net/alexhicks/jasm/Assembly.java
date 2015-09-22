@@ -13,7 +13,7 @@ public class Assembly {
 	}
 
 	public void error(int pos, String msg) {
-		this.lastError = "Unable to parse cell " + pos + ":\n" + msg;
+		this.lastError = "Unable to parse cell " + pos + ": " + msg;
 	}
 
 	private void parse(String[] lines) {
@@ -66,6 +66,18 @@ public class Assembly {
 		return true;
 	}
 
+	private void STO(int ptr) {
+		Cell newCell;
+		if (!cells.containsKey(ptr)) {
+			newCell = new Cell(String.valueOf(accumulator), ptr);
+		} else {
+			newCell = cells.get(ptr).copy();
+		}
+		newCell.value = accumulator;
+		newCell.isNumber = true;
+		cells.put(ptr, newCell);
+	}
+
 	private int handle(int i) {
 		Main.gui.outputList.setSelectedIndex(i);
 		Cell cell = cells.get(i);
@@ -111,15 +123,7 @@ public class Assembly {
 			}
 			switch (instruction) {
 				case "STO":
-					Cell newCell;
-					if (!cells.containsKey(ptr)) {
-						newCell = new Cell(String.valueOf(accumulator), ptr);
-					} else {
-						newCell = cells.get(ptr).copy();
-					}
-					newCell.value = accumulator;
-					newCell.isNumber = true;
-					cells.put(ptr, newCell);
+					STO(ptr);
 					break;
 				case "LOD-C":
 					this.accumulator = ptr;
@@ -135,6 +139,9 @@ public class Assembly {
 					break;
 				case "OR-C":
 					this.accumulator |= ptr;
+					break;
+				case "XOR-C":
+					this.accumulator ^= ptr;
 					break;
 				case "PRINT-C":
 					System.out.println(ptr);
@@ -180,11 +187,55 @@ public class Assembly {
 							case "OR":
 								this.accumulator |= cells.get(ptr).value;
 								break;
-							case "JMP-I":
-								return cells.get(i).value;
+							case "XOR":
+								this.accumulator ^= cells.get(ptr).value;
+								break;
 							default:
-								error(cell.position, "Instruction \"" + instruction + "\" is invalid.");
-								return -2;
+								// XXX-I
+								int optr = ptr;
+								ptr = checkLabel(String.valueOf(cells.get(optr).value));
+								if (ptr == -1) {
+									error(cell.position, "Invalid pointer " + ptr + " in cell " + optr + ".");
+									return -2;
+								}
+								switch (instruction) {
+									case "STO-I":
+										STO(ptr);
+										break;
+									case "LOD-I":
+										this.accumulator = cells.get(ptr).value;
+										break;
+									case "ADD-I":
+										this.accumulator += cells.get(ptr).value;
+										break;
+									case "SUB-I":
+										this.accumulator -= cells.get(ptr).value;
+										break;
+									case "AND-I":
+										this.accumulator &= cells.get(ptr).value;
+										break;
+									case "OR-I":
+										this.accumulator |= cells.get(ptr).value;
+										break;
+									case "XOR-I":
+										this.accumulator ^= cells.get(ptr).value;
+										break;
+									case "JMP-I":
+										return cells.get(ptr).value;
+									case "JMZ-I":
+										if (accumulator == 0) {
+											return ptr;
+										}
+										break;
+									case "JMN-I":
+										if (accumulator < 0) {
+											return ptr;
+										}
+										break;
+									default:
+										error(cell.position, "Instruction \"" + instruction + "\" is invalid.");
+										return -2;
+								}
 						}
 					} else {
 						error(cell.position, "Pointer " + ptr + " does not point to an integer!");
@@ -214,7 +265,7 @@ public class Assembly {
 			i = newI - 1;
 		}
 		if (count >= 2000) {
-			error(-1, "Too many iterations (over 2000)\nWe had to stop you.");
+			error(-1, "Too many iterations (over 2000)");
 		}
 		System.out.println("End run");
 		return true;
