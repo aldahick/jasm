@@ -25,6 +25,7 @@ public class Main {
 			public void actionPerformed(ActionEvent evt) {
 				String code = gui.textCode.getText();
 				Assembly asm = new Assembly();
+				gui.errorLabel.setText("");
 				if (!asm.execute(code)) {
 					gui.errorLabel.setText(asm.getLastError());
 					return;

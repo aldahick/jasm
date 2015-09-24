@@ -10,7 +10,7 @@ public class Cell {
 	public Cell(String data, int position) {
 		this.rawData = data;
 		if (data.contains(":")) {
-			this.label = data.split(":")[0];
+			this.label = data.split(":")[0].trim();
 			data = data.split(":")[1];
 		}
 		data = data.trim();
