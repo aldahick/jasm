@@ -3,15 +3,20 @@ package net.alexhicks.jasm;
 public class Cell {
 	public boolean isNumber = false;
 	public String data = "";
-	public int value = 0x0;
+	public int value = 0;
 	public int position = 0;
 	public String label = "";
 	private String rawData;
 	public Cell(String data, int position) {
 		this.rawData = data;
 		if (data.contains(":")) {
-			this.label = data.split(":")[0].trim();
-			data = data.split(":")[1];
+			String[] tokens = data.split(":");
+			this.label = tokens[0].trim();
+			data = "";
+			for (int i = 1; i < tokens.length; i++) {
+				data += ":" + tokens[i];
+			}
+			data = data.substring(1);
 		}
 		data = data.trim();
 		try {

@@ -24,7 +24,7 @@ public class Main {
 			@Override
 			public void actionPerformed(ActionEvent evt) {
 				String code = gui.textCode.getText();
-				Assembly asm = new Assembly();
+				AssemblyVM asm = new AssemblyVM();
 				gui.errorLabel.setText("");
 				if (!asm.execute(code)) {
 					gui.errorLabel.setText(asm.getLastError());
